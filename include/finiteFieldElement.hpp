@@ -30,6 +30,10 @@ namespace ff {
         { os << a } -> std::same_as<std::ostream&>;
     };
 
+    //input safeguard; only uint32_t, uint64_t or equivalents
+    template <typename T>
+    concept UnsignedInteger = std::is_unsigned_v<T> && (sizeof(T) == 4 || sizeof(T) == 8);
+
     //modular fast exponentiation
     template <typename T>
     constexpr T modPow (T base, T exp, T mod) {
@@ -51,7 +55,7 @@ namespace ff {
     //core compile-time namespace
     namespace core {
 
-        // compile-time primality test
+        //compile-time primality test
         template <typename T>
         constexpr bool isPrimeConstexpr(const T& n) noexcept {
             if (n < 2) return false;
@@ -62,13 +66,13 @@ namespace ff {
             return true;
         }
 
-        template <typename T, T modulus>
+        template <UnsignedInteger T, T modulus>
         class FieldElement {
             static_assert(isPrimeConstexpr(modulus), "Modulus P must be a prime number for GF(p)!");
 
             public:
             T value;
-            constexpr explicit FieldElement(T v = 0) : value(v % modulus) {} //constructor
+            constexpr explicit FieldElement(T v = 0) : value((v % modulus + modulus) % modulus) {} //constructor
 
             //addition
             [[nodiscard]] constexpr FieldElement operator+(const FieldElement& o) const noexcept {
@@ -152,7 +156,7 @@ namespace ff {
 
     namespace runtime {
 
-        // runtime primality test
+        //runtime primality test
         inline bool isPrime(const uint64_t& n) noexcept {
             if (n < 2) return false;
             if (n % 2 == 0) return n == 2;
@@ -174,7 +178,7 @@ namespace ff {
             }
 
             uint64_t value;
-            explicit FieldElement(const uint64_t v = 0) : value(v % modulus) {}
+            explicit FieldElement(const uint64_t v = 0) : value((v % modulus + modulus) % modulus) {}
 
             //addition
             [[nodiscard]] FieldElement operator+(const FieldElement& o) const noexcept {
