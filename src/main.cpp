@@ -4,6 +4,7 @@
 
 using FE = ff::runtime::FieldElement;
 
+//modulus input validation
 uint64_t modInput () {
     std::ostringstream err;
     uint64_t modulus = 2;
@@ -34,7 +35,8 @@ uint64_t modInput () {
     return modulus;
 }
 
-void termsInput (FE& a, FE& b, const uint64_t& modulus) {
+//terms input validation
+void termsInput (FE& a, FE& b, int32_t& bInt, const uint64_t& modulus, const uint8_t& opIndex) {
     uint64_t aRaw;
     uint64_t bRaw;
 
@@ -50,18 +52,59 @@ void termsInput (FE& a, FE& b, const uint64_t& modulus) {
     }
     a = FE(aRaw);
     std::cout << "Initialized term GF(" << modulus << ") a = " << a << " successfully!" << std::endl;
+    switch (opIndex) {
+        case 5:
+            while (true) {
+                std::cout << "Enter exponent b";
+
+                if (!(std::cin >> bInt)) {
+                    std::cout << "Invalid input: Expected an integer.\n\n" << std::flush;
+                    std::cin.clear();
+                    std::cin.ignore(9999, '\n');
+                } else break;
+            }
+
+        case 6: return;
+
+        default:
+            while (true) {
+                std::cout << "Enter term b in GF(" << modulus << "): ";
+
+                if (!(std::cin >> bRaw)) {
+                    std::cout << "Invalid input: Expected an integer.\n\n" << std::flush;
+                    std::cin.clear();
+                    std::cin.ignore(9999, '\n');
+                } else break;
+            }
+            b = FE(bRaw);
+            std::cout << "Initialized term GF(" << modulus << ") b = " << b << " successfully!" << std::endl;
+    }
+}
+
+//operation index input validation
+uint8_t operationSelect (const uint8_t& indexLimit) {
+    uint8_t opIndex = 0; //default
 
     while (true) {
-        std::cout << "Enter term b in GF(" << modulus << "): ";
+        std::cout << "What operation would you like to do?\n";
+        std::cout << "1. Addition\n";
+        std::cout << "2. Subtraction\n";
+        std::cout << "3. Multiplication\n";
+        std::cout << "4. Division\n";
+        std::cout << "5. Exponentiation\n";
+        std::cout << "6. Inverse\n";
+        std::cout << "Input the number of your operation (0 means no operation) : ";
 
-        if (!(std::cin >> bRaw)) {
-            std::cout << "Invalid input: Expected an integer.\n\n" << std::flush;
+        if (!(std::cin >> opIndex)) {
+            std::cout << "Invalid input: Expected a positive integer between 1 and " << indexLimit << ".\n\n" << std::flush;
             std::cin.clear();
             std::cin.ignore(9999, '\n');
+        } else if (opIndex > indexLimit) {
+            std::cout << "Invalid input: Expected a positive integer between 1 and " << indexLimit << ".\n\n" << std::flush;
         } else break;
     }
-    b = FE(bRaw);
-    std::cout << "Initialized term GF(" << modulus << ") b = " << b << " successfully!" << std::endl;
+
+    return opIndex;
 }
 
 int main() {
@@ -71,10 +114,12 @@ int main() {
 
     std::ios::sync_with_stdio(false);
     const uint64_t modulus = modInput();
+    constexpr uint8_t indexLimit = 6;
+    int32_t bInt = 0;
     FE a, b;
 
-    termsInput(a, b, modulus);
-
+    const uint8_t opIndex = operationSelect(indexLimit);
+    termsInput(a, b, bInt, modulus, opIndex);
 
     return 0;
 }
